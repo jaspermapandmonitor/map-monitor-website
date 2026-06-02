@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>map+monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #1d3461;
+            --navy-dark: #111f3d;
+            --silver: #8a9ab8;
+            --light-silver: #c4cedd;
+            --light-gray: #f3f5f8;
+            --white: #ffffff;
+            --text-dark: #1a2340;
+            --text-mid: #4a5568;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            background: var(--white);
+        }
+
+        /* ── Navigation ── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 52px;
+            height: 76px;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(196, 206, 221, 0.3);
+            transition: box-shadow 0.3s;
+        }
+
+        nav.scrolled {
+            box-shadow: 0 2px 24px rgba(29, 52, 97, 0.08);
+        }
+
+        .nav-brand img {
+            height: 52px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 44px;
+            align-items: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-mid);
+            font-size: 0.78rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            font-weight: 400;
+            transition: color 0.25s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--navy);
+            transform: scaleX(0);
+            transition: transform 0.25s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--navy);
+        }
+
+        .nav-links a.active::after,
+        .nav-links a:hover::after {
+            transform: scaleX(1);
+        }
+
+        .nav-logo img {
+            height: 52px;
+            width: 52px;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* ── Hero ── */
+        #hero {
+            min-height: 100vh;
+            background-image: url('vintage-map.svg');
+            background-size: cover;
+            background-position: center center;
+            background-color: var(--navy);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 80px 48px 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Navy overlay so text stays legible while map shows through */
+        #hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(50, 90, 160, 0.45);
+            pointer-events: none;
+        }
+
+        #hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(196, 206, 221, 0.25), transparent);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero-eyebrow {
+            font-size: 0.72rem;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: #ffffff;
+            margin-bottom: 28px;
+            font-weight: 400;
+        }
+
+        .hero-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2.8rem, 5.5vw, 5rem);
+            font-weight: 300;
+            color: #ffffff;
+            line-height: 1.15;
+            letter-spacing: 0.01em;
+            margin-bottom: 28px;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+        }
+
+        .hero-title em {
+            font-style: italic;
+            color: #ffffff;
+        }
+
+        .hero-subtitle-line {
+            font-size: 0.72em;
+        }
+
+        .hero-supporting {
+            color: #ffffff;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .hero-rule {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--silver), transparent);
+            margin: 40px auto 0;
+        }
+
+        .hero-scroll-hint {
+            position: absolute;
+            bottom: 36px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            opacity: 0.9;
+            z-index: 1;
+            transition: opacity 0.2s;
+        }
+
+        .hero-scroll-hint:hover { opacity: 1; }
+
+        .hero-scroll-hint span {
+            font-size: 0.68rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
+
+        .scroll-arrow {
+            width: 20px;
+            height: 20px;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            transform: rotate(45deg);
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: rotate(45deg) translateY(0); opacity: 0.6; }
+            50% { transform: rotate(45deg) translateY(4px); opacity: 1; }
+        }
+
+        /* ── Sections ── */
+        section {
+            padding: 108px 52px;
+        }
+
+        .section-inner {
+            max-width: 1120px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: var(--navy);
+            margin-bottom: 14px;
+            font-weight: 500;
+        }
+
+        .section-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2rem, 3.5vw, 3.2rem);
+            font-weight: 400;
+            color: var(--navy);
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+
+        .section-rule {
+            width: 40px;
+            height: 2px;
+            background: var(--navy);
+            margin-bottom: 44px;
+        }
+
+        /* ── About ── */
+        #about {
+            background: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about-watermark {
+            position: absolute;
+            bottom: -80px;
+            right: -80px;
+            width: 380px;
+            height: 380px;
+            opacity: 0.06;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 88px;
+            align-items: start;
+        }
+
+        .about-text p {
+            font-size: 1.05rem;
+            line-height: 1.85;
+            color: var(--text-mid);
+            margin-bottom: 22px;
+        }
+
+        .about-text p:last-child { margin-bottom: 0; }
+
+        .about-sidebar {
+            border-left: 2px solid var(--light-silver);
+            padding-left: 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 36px;
+        }
+
+        .credential {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .credential-org {
+            font-size: 0.68rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--navy);
+            font-weight: 500;
+        }
+
+        .credential-role {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.15rem;
+            color: var(--navy);
+            line-height: 1.3;
+        }
+
+        .credential-detail {
+            font-size: 0.84rem;
+            color: var(--text-mid);
+            line-height: 1.6;
+            margin-top: 2px;
+        }
+
+        .credential-sep {
+            width: 24px;
+            height: 1px;
+            background: var(--light-silver);
+        }
+
+        /* ── Services ── */
+        /* ── How We Can Help (accordion) ── */
+        #services {
+            background: var(--white);
+            position: relative;
+            padding-bottom: 60px;
+        }
+
+        #services .section-label { color: var(--navy); }
+        #services .section-title { color: var(--navy); }
+        #services .section-rule { background: var(--navy); }
+
+        .services-intro {
+            font-size: 1.05rem;
+            line-height: 1.85;
+            color: var(--text-mid);
+            max-width: 680px;
+            margin-bottom: 64px;
+        }
+
+        .accordion {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            align-items: start;
+        }
+
+        .accordion-item {
+            border: 1px solid rgba(29, 52, 97, 0.15);
+            background: #f0f2f5;
+            transition: border-color 0.25s;
+        }
+
+        .accordion-item:hover,
+        .accordion-item.open {
+            border-color: rgba(29, 52, 97, 0.35);
+        }
+
+        .accordion-item:last-child {
+            grid-column: 1 / -1;
+            max-width: calc(50% - 8px);
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .accordion-num { display: none; }
+
+        .accordion-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 28px 28px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .accordion-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            color: var(--navy);
+            font-weight: 400;
+            flex: 1;
+            line-height: 1.2;
+        }
+
+        .accordion-icon {
+            position: relative;
+            width: 26px;
+            height: 26px;
+            border: 1px solid rgba(29, 52, 97, 0.25);
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: background 0.25s;
+        }
+
+        .accordion-icon::before,
+        .accordion-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            background: var(--navy);
+            border-radius: 1px;
+            transition: transform 0.35s, opacity 0.25s;
+        }
+
+        .accordion-icon::before {
+            width: 10px;
+            height: 1px;
+            transform: translate(-50%, -50%);
+        }
+
+        .accordion-icon::after {
+            width: 1px;
+            height: 10px;
+            transform: translate(-50%, -50%);
+        }
+
+        .accordion-item.open .accordion-icon {
+            background: rgba(29, 52, 97, 0.06);
+        }
+
+        .accordion-item.open .accordion-icon::after {
+            transform: translate(-50%, -50%) rotate(90deg);
+            opacity: 0;
+        }
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .accordion-body-inner {
+            background: var(--light-gray);
+            border-top: 1px solid rgba(29, 52, 97, 0.08);
+            padding: 8px 0 12px;
+        }
+
+        .accordion-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .accordion-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 28px;
+            font-size: 0.82rem;
+            letter-spacing: 0.04em;
+            color: var(--navy);
+            border-bottom: 1px solid rgba(196, 206, 221, 0.25);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .accordion-list li:last-child {
+            border-bottom: none;
+        }
+
+        .accordion-list li::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--navy);
+            opacity: 0.35;
+            flex-shrink: 0;
+        }
+
+        .services-footnote {
+            text-align: center;
+            font-size: 0.78rem;
+            font-style: italic;
+            color: var(--text-mid);
+            opacity: 0.5;
+            letter-spacing: 0.05em;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px 0;
+            border-top: 1px solid rgba(29,52,97,0.08);
+        }
+
+        /* ── Search / Contact ── */
+        #search {
+            background: var(--navy);
+        }
+
+        #search .section-label { color: var(--light-silver); }
+        #search .section-title { color: var(--white); }
+        #search .section-rule { background: rgba(196, 206, 221, 0.5); }
+
+        .search-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 100px;
+            align-items: start;
+        }
+
+        .search-info p {
+            font-size: 1rem;
+            line-height: 1.85;
+            color: var(--silver);
+            margin-bottom: 22px;
+        }
+
+        .search-info p:last-child { margin-bottom: 0; }
+
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .form-group label {
+            font-size: 0.68rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--light-silver);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            border: none;
+            border-bottom: 1px solid rgba(196, 206, 221, 0.3);
+            padding: 10px 0;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.92rem;
+            color: var(--white);
+            background: transparent;
+            outline: none;
+            transition: border-color 0.25s;
+            -webkit-appearance: none;
+            border-radius: 0;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--light-silver);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(196, 206, 221, 0.35);
+            font-size: 0.88rem;
+        }
+
+        .form-group select {
+            cursor: pointer;
+            color: var(--silver);
+        }
+
+        .form-group select option { color: var(--text-dark); }
+
+        .form-group textarea {
+            min-height: 110px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .form-note {
+            font-size: 0.78rem;
+            color: var(--silver);
+            opacity: 0.6;
+            letter-spacing: 0.02em;
+        }
+
+        .form-submit {
+            align-self: flex-start;
+            padding: 14px 44px;
+            background: var(--white);
+            color: var(--navy);
+            border: none;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.74rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.25s, letter-spacing 0.25s;
+            font-weight: 400;
+        }
+
+        .form-submit:hover {
+            background: var(--light-silver);
+            letter-spacing: 0.22em;
+        }
+
+        .form-submit:disabled {
+            background: var(--silver);
+            cursor: default;
+            letter-spacing: 0.18em;
+        }
+
+        /* ── Footer ── */
+        footer {
+            padding: 28px 52px;
+            background: var(--navy-dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.05rem;
+            color: var(--silver);
+            letter-spacing: 0.06em;
+        }
+
+        .footer-right {
+            font-size: 0.72rem;
+            color: var(--silver);
+            opacity: 0.5;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── Animations ── */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+                        transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-up[data-delay="1"] { transition-delay: 0.1s; }
+        .fade-up[data-delay="2"] { transition-delay: 0.2s; }
+        .fade-up[data-delay="3"] { transition-delay: 0.3s; }
+        .fade-up[data-delay="4"] { transition-delay: 0.4s; }
+        .fade-up[data-delay="5"] { transition-delay: 0.5s; }
+        .fade-up[data-delay="6"] { transition-delay: 0.6s; }
+
+        /* ── Responsive ── */
+        @media (max-width: 1024px) {
+            .accordion-body-inner { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 860px) {
+            nav { padding: 0 24px; }
+            .nav-links { gap: 22px; }
+            section { padding: 80px 24px; }
+            .about-grid { grid-template-columns: 1fr; gap: 48px; }
+            .about-sidebar { border-left: none; border-top: 1px solid var(--light-silver); padding-left: 0; padding-top: 36px; }
+            .accordion-body-inner { grid-template-columns: 1fr; }
+            .accordion-body-inner { padding-left: 0; }
+            .search-layout { grid-template-columns: 1fr; gap: 56px; }
+            .form-row { grid-template-columns: 1fr; }
+            footer { flex-direction: column; gap: 8px; text-align: center; }
+        }
+
+        @media (max-width: 600px) {
+            .nav-links { display: none; }
+            .hero-title { font-size: 2.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav id="navbar">
+    <div class="nav-brand">
+        <img src="logo-full.png" alt="map+monitor" />
+    </div>
+    <div class="nav-links">
+        <a href="#services">How We Can Help</a>
+        <a href="#search">Search</a>
+        <a href="#about">About</a>
+    </div>
+    <div class="nav-logo">
+        <img src="logo-circle.png" alt="map+monitor circular emblem" />
+    </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section id="hero">
+    <div class="hero-content">
+        <p class="hero-eyebrow">Fractional Chief Security Officer Services</p>
+        <h1 class="hero-title">
+            Strategic Security<br>
+            <em class="hero-subtitle-line">Navigating Risk and Solving Problems</em>
+        </h1>
+        <p class="hero-supporting">Supporting companies, family offices, and distinguished clients</p>
+        <div class="hero-rule"></div>
+    </div>
+    <div class="hero-scroll-hint" onclick="smoothTo('about')">
+        <span>Explore</span>
+        <div class="scroll-arrow"></div>
+    </div>
+</section>
+
+<!-- ── How We Can Help ── -->
+<section id="services">
+    <div class="section-inner">
+        <p class="section-label fade-up">How We Can Help</p>
+        <h2 class="section-title fade-up" data-delay="1">Fortune 125 expertise,<br>without the headcount.</h2>
+        <div class="section-rule fade-up" data-delay="2"></div>
+        <p class="services-intro fade-up" data-delay="2">
+            Clients benefit from expertise proven at Fortune 125 companies and in support of multinational family offices, without adding headcount or extraneous costs.
+        </p>
+        <div class="accordion fade-up" data-delay="3">
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span class="accordion-num">01</span>
+                    <span class="accordion-title">Chief Security Officer Services</span>
+                    <span class="accordion-icon"></span>
+                </div>
+                <div class="accordion-body">
+                    <div class="accordion-body-inner">
+                        <ul class="accordion-list">
+                            <li>Strategic Program Planning</li>
+                            <li>Executive Advisory Support</li>
+                            <li>Executive Risk Assessments</li>
+                            <li>IRS 132(c) Reports</li>
+                            <li>EP &amp; Security Program Assessments</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span class="accordion-num">02</span>
+                    <span class="accordion-title">Due Diligence Projects &amp; Intelligence Programs</span>
+                    <span class="accordion-icon"></span>
+                </div>
+                <div class="accordion-body">
+                    <div class="accordion-body-inner">
+                        <ul class="accordion-list">
+                            <li>M&amp;A Reputation Risk Assessments</li>
+                            <li>International Reputational Studies</li>
+                            <li>Background Investigations</li>
+                            <li>Supply Chain Vulnerability Studies</li>
+                            <li>Threat Investigations</li>
+                            <li>Facility and Staff Risk Monitoring</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span class="accordion-num">03</span>
+                    <span class="accordion-title">Travel Risk Management</span>
+                    <span class="accordion-icon"></span>
+                </div>
+                <div class="accordion-body">
+                    <div class="accordion-body-inner">
+                        <ul class="accordion-list">
+                            <li>Travel Itinerary Assessments</li>
+                            <li>Travel Security Support</li>
+                            <li>Global Emergency and Evacuation Support</li>
+                            <li>Indemnified Travel Response</li>
+                            <li>Staff/Traveler Training</li>
+                            <li>Medical Support Services</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span class="accordion-num">04</span>
+                    <span class="accordion-title">Crisis Management &amp; Tabletop Exercises</span>
+                    <span class="accordion-icon"></span>
+                </div>
+                <div class="accordion-body">
+                    <div class="accordion-body-inner">
+                        <ul class="accordion-list">
+                            <li>Crisis Management Programs</li>
+                            <li>Emergency Response Plans</li>
+                            <li>Active Shooter/Kinetic Threat Programs</li>
+                            <li>Crisis Leadership Training</li>
+                            <li>Tabletop Exercises</li>
+                            <li>Exercise Facilitation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span class="accordion-num">05</span>
+                    <span class="accordion-title">Risk Assessments - Residential, Office, Travel</span>
+                    <span class="accordion-icon"></span>
+                </div>
+                <div class="accordion-body">
+                    <div class="accordion-body-inner">
+                        <ul class="accordion-list">
+                            <li>Residences, Workplace, and Travel</li>
+                            <li>Medical Programs - Travel, Family and Individual*</li>
+                            <li>Maritime and Aviation*</li>
+                            <li>Digital Presence Vulnerability</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <p class="services-footnote">*partnered programs</p>
+    </div>
+</section>
+
+<!-- ── Search / Inquiries ── -->
+<section id="search">
+    <div class="section-inner">
+        <div class="search-layout">
+            <div class="search-info fade-up">
+                <p class="section-label">Search &amp; Inquiries</p>
+                <h2 class="section-title">Begin a confidential conversation.</h2>
+                <div class="section-rule"></div>
+                <p>All inquiries are handled with the utmost discretion. map+monitor works with a limited number of clients to ensure the highest level of personal attention and service.</p>
+                <p>To learn more about how we may be able to assist you, please submit your information and we will be in touch.</p>
+            </div>
+            <form class="search-form fade-up" data-delay="2" onsubmit="handleSubmit(event)" novalidate action="mailto:mark@mapandmonitor.com" method="post" enctype="text/plain">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="f-name">Name</label>
+                        <input type="text" id="f-name" placeholder="Your name" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="f-org">Organization</label>
+                        <input type="text" id="f-org" placeholder="Optional" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="f-email">Email</label>
+                    <input type="email" id="f-email" placeholder="Your email address" required />
+                </div>
+                <div class="form-group">
+                    <label for="f-interest">Area of Interest</label>
+                    <select id="f-interest">
+                        <option value="">Select a service area</option>
+                        <option>Security Assessments</option>
+                        <option>Executive Protection</option>
+                        <option>Intelligence</option>
+                        <option>IRS 132 Assessment</option>
+                        <option>C-Suite &amp; Board Consultation</option>
+                        <option>Advisory &amp; Retainer Engagement</option>
+                        <option>General Inquiry</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="f-message">Message</label>
+                    <textarea id="f-message" placeholder="Please briefly describe your needs"></textarea>
+                </div>
+                <p class="form-note">All information is treated as strictly confidential.</p>
+                <button type="submit" class="form-submit" id="submit-btn">Submit Inquiry</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- ── About ── -->
+<section id="about">
+    <div class="section-inner">
+        <div class="about-grid">
+            <div class="about-text fade-up">
+                <p class="section-label">About</p>
+                <h2 class="section-title">Founded on experience earned in the field.</h2>
+                <div class="section-rule"></div>
+                <p>map+monitor was founded by Mark Davidson to provide discreet and distinguished service to clients with complex business and personal profiles navigating an increasingly complex risk landscape.</p>
+                <p>Mark has almost 30 years of experience in mitigating risk, conducting operations, and building security programs. Mark combines his 22 years conducting operations in the CIA with program leadership in a Fortune 125 company and security consulting in the corporate, family office and HNW client spaces.</p>
+                <p>Mark is supported by a cadre of world class experts in the fields of cyber security, security technology, due diligence, and travel medicine.</p>
+            </div>
+            <div class="about-sidebar fade-up" data-delay="2">
+                <div class="credential">
+                    <div class="credential-org">Central Intelligence Agency</div>
+                    <div class="credential-role">Operations Officer</div>
+                    <div class="credential-detail">Multiple Chief of Station and Operations leadership roles</div>
+                </div>
+                <div class="credential-sep"></div>
+                <div class="credential">
+                    <div class="credential-org">The Starbucks Coffee Company</div>
+                    <div class="credential-role">Director, Global Intelligence, Business Resilience &amp; Executive Protection</div>
+                    <div class="credential-detail">Supporting the Executive Suite and managing global enterprise programs</div>
+                </div>
+                <div class="credential-sep"></div>
+                <div class="credential">
+                    <div class="credential-org">Qinsay</div>
+                    <div class="credential-role">Board Member</div>
+                    <div class="credential-detail">AI-enabled Resilience Technology company featuring the Tabletop One tabletop exercise tool</div>
+                </div>
+                <div class="credential-sep"></div>
+                <div class="credential">
+                    <div class="credential-org">Concentric</div>
+                    <div class="credential-role">Executive Team member of leading global security company</div>
+                    <div class="credential-detail">Leading growth and strategy</div>
+                </div>
+                <div class="credential-sep"></div>
+                <div class="credential">
+                    <div class="credential-org">Expert Network</div>
+                    <div class="credential-role">Cyber Security &nbsp;·&nbsp; Security Technology<br>Due Diligence &nbsp;·&nbsp; Travel Medicine<br>Threat Investigations &nbsp;·&nbsp; Active Monitoring</div>
+                </div>
+            </div>
+        </div>
+        <img src="logo-circle.png" alt="" class="about-watermark" />
+    </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+    <div class="footer-brand">map+monitor</div>
+    <div class="footer-right">&copy; 2026 map+monitor &nbsp;·&nbsp; All rights reserved</div>
+</footer>
+
+<script>
+    // Smooth scroll helper
+    function smoothTo(id) {
+        document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Nav: scrolled class + active link
+    const navbar = document.getElementById('navbar');
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-links a');
+
+    function onScroll() {
+        navbar.classList.toggle('scrolled', window.scrollY > 20);
+
+        let current = '';
+        sections.forEach(sec => {
+            if (window.scrollY >= sec.offsetTop - 100) {
+                current = sec.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            const href = link.getAttribute('href').slice(1);
+            link.classList.toggle('active', href === current);
+        });
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Intersection observer for fade-up animations
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    // Accordion
+    function toggleAccordion(header) {
+        const item = header.closest('.accordion-item');
+        const body = item.querySelector('.accordion-body');
+        const isOpen = item.classList.contains('open');
+
+        // Close all
+        document.querySelectorAll('.accordion-item.open').forEach(el => {
+            el.classList.remove('open');
+            el.querySelector('.accordion-body').style.maxHeight = '0';
+        });
+
+        // Open clicked if it was closed
+        if (!isOpen) {
+            item.classList.add('open');
+            body.style.maxHeight = body.scrollHeight + 'px';
+        }
+    }
+
+    // Form submission
+    function handleSubmit(e) {
+        const name     = document.getElementById('f-name').value.trim();
+        const email    = document.getElementById('f-email').value.trim();
+        const org      = document.getElementById('f-org').value.trim();
+        const interest = document.getElementById('f-interest').value;
+        const message  = document.getElementById('f-message').value.trim();
+
+        if (!name || !email) {
+            e.preventDefault();
+            return;
+        }
+
+        // Build mailto body
+        const body = [
+            'Name: ' + name,
+            'Email: ' + email,
+            org      ? 'Organization: ' + org      : '',
+            interest ? 'Area of Interest: ' + interest : '',
+            message  ? 'Message:\n' + message        : '',
+        ].filter(Boolean).join('\n\n');
+
+        const subject = encodeURIComponent('map+monitor Inquiry – ' + name);
+        const bodyEnc = encodeURIComponent(body);
+
+        e.target.action = 'mailto:mark@mapandmonitor.com?subject=' + subject + '&body=' + bodyEnc;
+        e.target.enctype = 'application/x-www-form-urlencoded';
+
+        // Show confirmation after a brief delay
+        setTimeout(() => {
+            const btn = document.getElementById('submit-btn');
+            btn.textContent = 'Inquiry Sent';
+            btn.disabled = true;
+        }, 300);
+    }
+</script>
+
+</body>
+</html>
